@@ -111,51 +111,69 @@ export const initDemoData = () => {
     { id: 'u2', name: 'Jane Citizen', phone: '9000000001', role: UserRole.CITIZEN, zoneId: 'zone-2' },
     { id: 'd1', name: 'Ravi Kumar', phone: '8000000001', role: UserRole.DRIVER },
     { id: 'd2', name: 'Suresh Raina', phone: '8000000002', role: UserRole.DRIVER },
+    { id: 'd3', name: 'Manish Singh', phone: '8000000003', role: UserRole.DRIVER },
+    { id: 'd4', name: 'Priya Verma', phone: '8000000004', role: UserRole.DRIVER },
     { id: 'a1', name: 'Admin User', phone: '100', role: UserRole.ADMIN },
   ];
   db.users.push(...users);
 
-  // Trucks
+  // Trucks - Clustered around 31.6340, 74.8723
+  const centerLat = 31.6340;
+  const centerLng = 74.8723;
   const trucks: Truck[] = [
-    { id: 't1', numberPlate: 'PB-01-AX-1234', driverId: 'd1', zoneId: 'zone-1', location: { lat: 30.7333, lng: 76.7794 }, status: 'on-route' },
-    { id: 't2', numberPlate: 'PB-01-BY-5678', driverId: 'd2', zoneId: 'zone-2', location: { lat: 30.7444, lng: 76.7894 }, status: 'idle' },
+    { id: 't1', numberPlate: 'PB-01-AX-1234', driverId: 'd1', zoneId: 'zone-1', location: { lat: centerLat + 0.005, lng: centerLng + 0.002 }, status: 'on-route' },
+    { id: 't2', numberPlate: 'PB-01-BY-5678', driverId: 'd2', zoneId: 'zone-2', location: { lat: centerLat - 0.003, lng: centerLng + 0.005 }, status: 'on-route' },
+    { id: 't3', numberPlate: 'PB-01-CZ-9012', driverId: 'd3', zoneId: 'zone-1', location: { lat: centerLat + 0.001, lng: centerLng - 0.004 }, status: 'on-route' },
+    { id: 't4', numberPlate: 'PB-02-DK-3456', driverId: 'd4', zoneId: 'zone-3', location: { lat: centerLat - 0.002, lng: centerLng - 0.001 }, status: 'idle' },
   ];
   db.trucks.push(...trucks);
 
   // Route Stops
   db.routeStops.push(
-    { id: 'rs1', truckId: 't1', address: 'Sector 17 Market Gate', location: { lat: 30.7330, lng: 76.7790 }, status: 'completed', completedAt: new Date().toISOString() },
-    { id: 'rs2', truckId: 't1', address: 'Residential Area Block A', location: { lat: 30.7350, lng: 76.7810 }, status: 'verified' },
-    { id: 'rs3', truckId: 't1', address: 'Central Park North', location: { lat: 30.7370, lng: 76.7830 }, status: 'in-progress' },
-    { id: 'rs4', truckId: 't1', address: 'Main Street Bank', location: { lat: 30.7390, lng: 76.7850 }, status: 'pending' },
+    { id: 'rs1', truckId: 't1', address: 'Sector 17 Market Gate', location: { lat: centerLat + 0.005, lng: centerLng + 0.003 }, status: 'completed', completedAt: new Date().toISOString() },
+    { id: 'rs2', truckId: 't1', address: 'Residential Area Block A', location: { lat: centerLat + 0.004, lng: centerLng + 0.002 }, status: 'verified' },
+    { id: 'rs3', truckId: 't1', address: 'Central Park North', location: { lat: centerLat + 0.003, lng: centerLng + 0.001 }, status: 'in-progress' },
+    { id: 'rs4', truckId: 't1', address: 'Main Street Bank', location: { lat: centerLat + 0.002, lng: centerLng + 0.001 }, status: 'pending' },
   );
 
-  // Complaints
-  db.complaints.push({
-    id: 'c1',
-    citizenId: 'u1',
-    type: 'complaint',
-    description: 'The bin near Sector 17 main market is overflowing.',
-    status: 'pending',
-    referenceNumber: 'CMP-1001',
-    address: 'Near Sector 17 Main Market',
-    zoneId: 'zone-1',
-    createdAt: new Date().toISOString(),
-  });
-
-  db.complaints.push({
-    id: 'c2',
-    citizenId: 'u1',
-    type: 'bulk-pickup',
-    description: 'Request for bulk pickup of old furniture.',
-    status: 'in-progress',
-    referenceNumber: 'REQ-2002',
-    address: 'House No 123, Street 5',
-    preferredDate: '2026-05-15',
-    preferredTime: '10:00 AM',
-    zoneId: 'zone-1',
-    createdAt: new Date().toISOString(),
-  });
+  // Complaints / Service Requests for Demo Citizen (9876543210)
+  db.complaints.push(
+    {
+      id: 'c1',
+      citizenId: 'u1',
+      type: 'complaint',
+      description: 'The bin near the local primary school is overflowing.',
+      status: 'pending',
+      referenceNumber: 'CMP-1001',
+      address: 'Near Primary School, Lane 4',
+      zoneId: 'zone-1',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'c2',
+      citizenId: 'u1',
+      type: 'bulk-pickup',
+      description: 'Old sofa and garden waste removal.',
+      status: 'in-progress',
+      referenceNumber: 'REQ-2002',
+      address: 'House No 123, Sector 17',
+      preferredDate: '2026-05-15',
+      preferredTime: '10:00 AM',
+      zoneId: 'zone-1',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'c3',
+      citizenId: 'u1',
+      type: 'missed-pickup',
+      description: 'Morning pickup was missed today.',
+      status: 'pending',
+      referenceNumber: 'REQ-3003',
+      address: 'House No 123, Sector 17',
+      zoneId: 'zone-1',
+      createdAt: new Date().toISOString(),
+    }
+  );
 
   // Notifications
   db.notifications.push({
