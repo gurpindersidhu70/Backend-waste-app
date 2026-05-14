@@ -45,43 +45,71 @@ const authorize = (roles: UserRole[]) => (req: any, res: any, next: any) => {
 
 // --- Auth Routes ---
 
-apiRouter.post("/auth/login", (req, res) => {
-  const { phone, role } = req.body;
-  const user = db.users.find(u => u.phone === phone && u.role === role);
-  if (!user) return res.status(401).json({ error: "Invalid credentials" });
-  const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
-  res.json({ token, user });
-});
+const handleLogin = (req: any, res: any) => {
+  console.log('Login attempt payload:', req.body);
+  const { phone, mobile, username, id, otp, password, role: requestedRole } = req.body;
+  
+  const identifier = String(phone || mobile || username || id || "");
+  const secret = String(otp || password || "");
 
-apiRouter.post("/login", (req, res) => {
-  const { phone, role } = req.body;
-  const user = db.users.find(u => u.phone === phone && u.role === role);
-  if (!user) return res.status(401).json({ error: "Invalid credentials" });
-  const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
-  res.json({ token, user });
-});
+  if (!identifier || !secret) {
+    console.log('[Auth] Login failed: Missing identifier or secret');
+    return res.status(400).json({ error: "Missing identifier or password/otp" });
+  }
 
-// Citizen login with mobile number / OTP mock flow
-apiRouter.post("/auth/citizen/otp-request", (req, res) => {
-  const { phone } = req.body;
-  // In real app, send OTP. Here, just return success.
-  res.json({ message: "OTP sent to " + phone, mockOtp: "1234" });
-});
+  // Hardcoded Demo Bypasses
+  let user: User | undefined;
 
-apiRouter.post("/auth/citizen/otp-verify", (req, res) => {
-  const { phone, otp } = req.body;
-  if (otp !== "1234") return res.status(401).json({ error: "Invalid OTP" });
+  if (identifier === "9876543210" && secret === "1234") {
+    user = db.users.find(u => u.phone === "9876543210" && u.role === UserRole.CITIZEN);
+    console.log('[Auth] Bypass: Citizen logged in');
+  } else if (identifier === "8000000001" && secret === "1234") {
+    user = db.users.find(u => u.phone === "8000000001" && u.role === UserRole.DRIVER);
+    console.log('[Auth] Bypass: Driver logged in');
+  } else if (identifier === "100" && secret === "1234") {
+    user = db.users.find(u => u.phone === "100" && u.role === UserRole.ADMIN);
+    console.log('[Auth] Bypass: Admin logged in');
+  } else {
+    // Standard lookup for other demo users
+    user = db.users.find(u => (u.phone === identifier || u.id === identifier));
+    if (user && secret !== "1234") {
+      user = undefined; // Force invalid if not demo password
+    }
+    console.log(`[Auth] Standard lookup for identifier: ${identifier}, found: ${!!user}`);
+  }
 
-  let user = db.users.find(u => u.phone === phone && u.role === UserRole.CITIZEN);
   if (!user) {
-    // Auto-register for demo
-    user = { id: `u${db.users.length + 1}`, name: "New Citizen", phone, role: UserRole.CITIZEN };
-    db.users.push(user);
+    return res.status(401).json({ error: "Invalid credentials" });
   }
 
   const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
-  res.json({ token, user });
+  console.log(`[Auth] Token generated for ${user.name} (${user.role})`);
+  
+  // Standardized response
+  res.json({ 
+    token, 
+    user: { 
+      id: user.id,
+      name: user.name,
+      phone: user.phone,
+      role: user.role,
+      zoneId: user.zoneId
+    } 
+  });
+};
+
+apiRouter.post("/auth/login", handleLogin);
+apiRouter.post("/login", handleLogin);
+
+// Citizen login with mobile number / OTP mock flow
+apiRouter.post("/auth/citizen/otp-request", (req, res) => {
+  const { phone, mobile } = req.body;
+  const target = phone || mobile;
+  console.log(`[Auth] OTP Request for: ${target}`);
+  res.json({ message: "OTP sent to " + target, mockOtp: "1234" });
 });
+
+apiRouter.post("/auth/citizen/otp-verify", handleLogin);
 
 apiRouter.get("/notifications", authenticate, (req: any, res) => {
   const notifications = db.notifications.filter(n => n.userId === req.user.id);
