@@ -47,20 +47,27 @@ const authorize = (roles: UserRole[]) => (req: any, res: any, next: any) => {
 
 const handleLogin = (req: any, res: any) => {
   console.log('Login attempt payload:', req.body);
-  const { phone, mobile, username, id, otp, password, role: requestedRole } = req.body;
+  const { 
+    phone, mobile, username, id, driverId, riderId,
+    otp, password, pin,
+    role: requestedRole 
+  } = req.body;
   
-  const identifier = String(phone || mobile || username || id || "");
-  const secret = String(otp || password || "");
+  const identifier = String(phone || mobile || username || id || driverId || riderId || "");
+  const secret = String(otp || password || pin || "");
 
   if (!identifier || !secret) {
-    console.log('[Auth] Login failed: Missing identifier or secret');
-    return res.status(400).json({ error: "Missing identifier or password/otp" });
+    console.log('[Auth] Login failed: Missing identifier or secret. Identifer:', identifier, 'Secret:', secret ? '***' : 'missing');
+    return res.status(400).json({ error: "Missing identifier or password/otp/pin" });
   }
 
   // Hardcoded Demo Bypasses
   let user: User | undefined;
 
-  if (identifier === "9876543210" && secret === "1234") {
+  if (identifier === "admin" && secret === "admin123") {
+    user = db.users.find(u => u.role === UserRole.ADMIN);
+    console.log('[Auth] Bypass: Admin logged in (username/password)');
+  } else if (identifier === "9876543210" && secret === "1234") {
     user = db.users.find(u => u.phone === "9876543210" && u.role === UserRole.CITIZEN);
     console.log('[Auth] Bypass: Citizen logged in');
   } else if (identifier === "8000000001" && secret === "1234") {
@@ -68,7 +75,7 @@ const handleLogin = (req: any, res: any) => {
     console.log('[Auth] Bypass: Driver logged in');
   } else if (identifier === "100" && secret === "1234") {
     user = db.users.find(u => u.phone === "100" && u.role === UserRole.ADMIN);
-    console.log('[Auth] Bypass: Admin logged in');
+    console.log('[Auth] Bypass: Admin logged in (ID/OTP)');
   } else {
     // Standard lookup for other demo users
     user = db.users.find(u => (u.phone === identifier || u.id === identifier));
