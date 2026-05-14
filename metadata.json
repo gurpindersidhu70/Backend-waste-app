@@ -1,0 +1,6 @@
+{
+  "name": "EcoConnect: Integrated Waste Management",
+  "description": "Full-stack demo for a complete waste management ecosystem featuring real-time tracking, citizen reports, and driver management.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": []
+}
