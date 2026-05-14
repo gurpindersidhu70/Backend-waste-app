@@ -27,6 +27,8 @@ export interface Truck {
   driverId: string;
   zoneId: string;
   location: { lat: number; lng: number };
+  heading?: number;
+  lastUpdated?: string;
   status: 'idle' | 'on-route' | 'full' | 'maintenance';
 }
 
@@ -120,11 +122,12 @@ export const initDemoData = () => {
   // Trucks - Clustered around 31.6340, 74.8723
   const centerLat = 31.6340;
   const centerLng = 74.8723;
+  const initialTimestamp = new Date().toISOString();
   const trucks: Truck[] = [
-    { id: 't1', numberPlate: 'PB-01-AX-1234', driverId: 'd1', zoneId: 'zone-1', location: { lat: centerLat + 0.005, lng: centerLng + 0.002 }, status: 'on-route' },
-    { id: 't2', numberPlate: 'PB-01-BY-5678', driverId: 'd2', zoneId: 'zone-2', location: { lat: centerLat - 0.003, lng: centerLng + 0.005 }, status: 'on-route' },
-    { id: 't3', numberPlate: 'PB-01-CZ-9012', driverId: 'd3', zoneId: 'zone-1', location: { lat: centerLat + 0.001, lng: centerLng - 0.004 }, status: 'on-route' },
-    { id: 't4', numberPlate: 'PB-02-DK-3456', driverId: 'd4', zoneId: 'zone-3', location: { lat: centerLat - 0.002, lng: centerLng - 0.001 }, status: 'idle' },
+    { id: 't1', numberPlate: 'PB-01-AX-1234', driverId: 'd1', zoneId: 'zone-1', location: { lat: centerLat + 0.005, lng: centerLng + 0.002 }, heading: 45, lastUpdated: initialTimestamp, status: 'on-route' },
+    { id: 't2', numberPlate: 'PB-01-BY-5678', driverId: 'd2', zoneId: 'zone-2', location: { lat: centerLat - 0.003, lng: centerLng + 0.005 }, heading: 180, lastUpdated: initialTimestamp, status: 'on-route' },
+    { id: 't3', numberPlate: 'PB-01-CZ-9012', driverId: 'd3', zoneId: 'zone-1', location: { lat: centerLat + 0.001, lng: centerLng - 0.004 }, heading: 90, lastUpdated: initialTimestamp, status: 'on-route' },
+    { id: 't4', numberPlate: 'PB-02-DK-3456', driverId: 'd4', zoneId: 'zone-3', location: { lat: centerLat - 0.002, lng: centerLng - 0.001 }, heading: 0, lastUpdated: initialTimestamp, status: 'idle' },
   ];
   db.trucks.push(...trucks);
 

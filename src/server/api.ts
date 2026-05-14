@@ -246,10 +246,14 @@ apiRouter.post("/driver/check-out", authenticate, authorize([UserRole.RIDER]), (
 });
 
 apiRouter.post("/driver/location", authenticate, authorize([UserRole.RIDER]), (req: any, res) => {
-  const { lat, lng } = req.body;
+  const { lat, lng, heading } = req.body;
   const truck = db.trucks.find(t => t.driverId === req.user.id);
   if (truck) {
-    truck.location = { lat, lng };
+    truck.location = { lat: Number(lat), lng: Number(lng) };
+    truck.heading = heading !== undefined ? Number(heading) : truck.heading;
+    truck.lastUpdated = new Date().toISOString();
+    
+    console.log(`[GPS] Location update for Truck ${truck.id} (Driver: ${req.user.name}): ${lat}, ${lng}, Heading: ${heading}`);
     
     // Simple geofence logic: If within 10m of a stop, mark as 'verified'
     const stops = db.routeStops.filter(s => s.truckId === truck.id && s.status === 'in-progress');
@@ -315,6 +319,37 @@ apiRouter.get("/driver/assignment", authenticate, authorize([UserRole.RIDER]), (
 });
 
 // --- Admin APIs ---
+
+apiRouter.get("/admin/dashboard", authenticate, authorize([UserRole.ADMIN]), (req, res) => {
+  const activeTrucks = db.trucks.filter(t => t.status === 'on-route');
+  const openCases = db.complaints.filter(c => c.status === 'pending').length;
+  
+  const groundOperations = db.trucks.map(truck => {
+    const driver = db.users.find(u => u.id === truck.driverId);
+    const stops = db.routeStops.filter(s => s.truckId === truck.id);
+    const completedStops = stops.filter(s => s.status === 'completed').length;
+    const progress = stops.length > 0 ? Math.round((completedStops / stops.length) * 100) : 0;
+
+    return {
+      id: truck.numberPlate,
+      driver: driver ? driver.name : "Unassigned",
+      status: truck.status === 'on-route' ? 'active' : 'idle',
+      lat: truck.location.lat,
+      lng: truck.location.lng,
+      heading: truck.heading || 0,
+      progress: `${progress}%`,
+      lastUpdated: truck.lastUpdated
+    };
+  });
+
+  res.json({
+    stats: {
+      activeZones: db.zones.length,
+      openCases: openCases
+    },
+    groundOperations
+  });
+});
 
 apiRouter.get("/admin/zones", authenticate, authorize([UserRole.ADMIN]), (req, res) => {
   res.json(db.zones);
@@ -387,8 +422,9 @@ setInterval(() => {
   db.trucks.forEach(truck => {
     if (truck.status === 'on-route') {
       // Simulate small movement
-      truck.location.lat += (Math.random() - 0.5) * 0.001;
-      truck.location.lng += (Math.random() - 0.5) * 0.001;
+      truck.location.lat += (Math.random() - 0.5) * 0.0001;
+      truck.location.lng += (Math.random() - 0.5) * 0.0001;
+      truck.lastUpdated = new Date().toISOString();
     }
   });
 }, 5000);
