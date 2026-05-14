@@ -71,8 +71,8 @@ const handleLogin = (req: any, res: any) => {
     user = db.users.find(u => u.phone === "9876543210" && u.role === UserRole.CITIZEN);
     console.log('[Auth] Bypass: Citizen logged in');
   } else if (identifier === "8000000001" && secret === "1234") {
-    user = db.users.find(u => u.phone === "8000000001" && u.role === UserRole.DRIVER);
-    console.log('[Auth] Bypass: Driver logged in');
+    user = db.users.find(u => u.phone === "8000000001" && u.role === UserRole.RIDER);
+    console.log('[Auth] Bypass: Rider logged in');
   } else if (identifier === "100" && secret === "1234") {
     user = db.users.find(u => u.phone === "100" && u.role === UserRole.ADMIN);
     console.log('[Auth] Bypass: Admin logged in (ID/OTP)');
@@ -224,9 +224,9 @@ apiRouter.get("/citizen/segregation-tips", (req, res) => {
   ]);
 });
 
-// --- Driver APIs ---
+// --- Rider APIs ---
 
-apiRouter.post("/driver/check-in", authenticate, authorize([UserRole.DRIVER]), (req: any, res) => {
+apiRouter.post("/driver/check-in", authenticate, authorize([UserRole.RIDER]), (req: any, res) => {
   const checkIn = {
     id: `a${db.attendance.length + 1}`,
     driverId: req.user.id,
@@ -237,7 +237,7 @@ apiRouter.post("/driver/check-in", authenticate, authorize([UserRole.DRIVER]), (
   res.json(checkIn);
 });
 
-apiRouter.post("/driver/check-out", authenticate, authorize([UserRole.DRIVER]), (req: any, res) => {
+apiRouter.post("/driver/check-out", authenticate, authorize([UserRole.RIDER]), (req: any, res) => {
   const attendance = db.attendance.find(a => a.driverId === req.user.id && !a.checkOut);
   if (attendance) {
     attendance.checkOut = new Date().toISOString();
@@ -245,7 +245,7 @@ apiRouter.post("/driver/check-out", authenticate, authorize([UserRole.DRIVER]), 
   res.json(attendance || { error: "No active check-in found" });
 });
 
-apiRouter.post("/driver/location", authenticate, authorize([UserRole.DRIVER]), (req: any, res) => {
+apiRouter.post("/driver/location", authenticate, authorize([UserRole.RIDER]), (req: any, res) => {
   const { lat, lng } = req.body;
   const truck = db.trucks.find(t => t.driverId === req.user.id);
   if (truck) {
@@ -262,11 +262,11 @@ apiRouter.post("/driver/location", authenticate, authorize([UserRole.DRIVER]), (
 
     res.json({ success: true, location: truck.location });
   } else {
-    res.status(404).json({ error: "No truck assigned to this driver" });
+    res.status(404).json({ error: "No truck assigned to this rider" });
   }
 });
 
-apiRouter.get("/driver/routes", authenticate, authorize([UserRole.DRIVER]), (req: any, res) => {
+apiRouter.get("/driver/routes", authenticate, authorize([UserRole.RIDER]), (req: any, res) => {
   const truck = db.trucks.find(t => t.driverId === req.user.id);
   if (!truck) return res.status(404).json({ error: "No truck assigned" });
   
@@ -274,7 +274,7 @@ apiRouter.get("/driver/routes", authenticate, authorize([UserRole.DRIVER]), (req
   res.json({ truck, stops });
 });
 
-apiRouter.patch("/driver/routes/stops/:id/status", authenticate, authorize([UserRole.DRIVER]), (req: any, res) => {
+apiRouter.patch("/driver/routes/stops/:id/status", authenticate, authorize([UserRole.RIDER]), (req: any, res) => {
   const { status } = req.body;
   const stop = db.routeStops.find(s => s.id === req.params.id);
   
@@ -293,7 +293,7 @@ apiRouter.patch("/driver/routes/stops/:id/status", authenticate, authorize([User
   res.json(stop);
 });
 
-apiRouter.get("/driver/routes/progress", authenticate, authorize([UserRole.DRIVER]), (req: any, res) => {
+apiRouter.get("/driver/routes/progress", authenticate, authorize([UserRole.RIDER]), (req: any, res) => {
   const truck = db.trucks.find(t => t.driverId === req.user.id);
   if (!truck) return res.status(404).json({ error: "No truck assigned" });
 
@@ -308,7 +308,7 @@ apiRouter.get("/driver/routes/progress", authenticate, authorize([UserRole.DRIVE
   res.json(progress);
 });
 
-apiRouter.get("/driver/assignment", authenticate, authorize([UserRole.DRIVER]), (req: any, res) => {
+apiRouter.get("/driver/assignment", authenticate, authorize([UserRole.RIDER]), (req: any, res) => {
   const truck = db.trucks.find(t => t.driverId === req.user.id);
   const zone = truck ? db.zones.find(z => z.id === truck.zoneId) : null;
   res.json({ truck, zone });

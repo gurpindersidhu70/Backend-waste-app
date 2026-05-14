@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export enum UserRole {
   CITIZEN = 'citizen',
-  DRIVER = 'driver',
+  RIDER = 'rider',
   ADMIN = 'admin'
 }
 
@@ -109,10 +109,10 @@ export const initDemoData = () => {
   const users: User[] = [
     { id: 'u1', name: 'Gurpinder Singh', phone: '9876543210', role: UserRole.CITIZEN, zoneId: 'zone-1' },
     { id: 'u2', name: 'Jane Citizen', phone: '9000000001', role: UserRole.CITIZEN, zoneId: 'zone-2' },
-    { id: 'd1', name: 'Ravi Kumar', phone: '8000000001', role: UserRole.DRIVER },
-    { id: 'd2', name: 'Suresh Raina', phone: '8000000002', role: UserRole.DRIVER },
-    { id: 'd3', name: 'Manish Singh', phone: '8000000003', role: UserRole.DRIVER },
-    { id: 'd4', name: 'Priya Verma', phone: '8000000004', role: UserRole.DRIVER },
+    { id: 'd1', name: 'Ravi Kumar', phone: '8000000001', role: UserRole.RIDER },
+    { id: 'd2', name: 'Suresh Raina', phone: '8000000002', role: UserRole.RIDER },
+    { id: 'd3', name: 'Manish Singh', phone: '8000000003', role: UserRole.RIDER },
+    { id: 'd4', name: 'Priya Verma', phone: '8000000004', role: UserRole.RIDER },
     { id: 'a1', name: 'Admin User', phone: '100', role: UserRole.ADMIN },
   ];
   db.users.push(...users);
